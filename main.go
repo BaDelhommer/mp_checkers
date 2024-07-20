@@ -14,8 +14,8 @@ func main() {
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
-		rl.DrawText("Hello WOrld", WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 16, rl.Black)
-		rl.ClearBackground(rl.RayWhite)
+		rl.ClearBackground(rl.Black)
+		drawSquares()
 
 		rl.EndDrawing()
 	}
