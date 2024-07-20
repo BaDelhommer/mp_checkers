@@ -6,3 +6,8 @@ const WINDOW_HEIGHT int32 = 800
 const ROWS, COLS int32 = 8, 8
 
 const SQUARE_SIZE int32 = WINDOW_WIDTH / COLS
+
+const PADDING int32 = 15
+const OUTLINE int32 = 2
+
+const NUM_PIECES = 12

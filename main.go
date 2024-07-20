@@ -11,11 +11,17 @@ func main() {
 
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "checkers game")
 	defer rl.CloseWindow()
+	game_board := Board{
+		Pieces:          [][]Piece{},
+		WhitePiecesLeft: NUM_PIECES,
+		RedPiecesLeft:   NUM_PIECES,
+	}
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 		drawSquares()
+		game_board.CreateBoard()
 
 		rl.EndDrawing()
 	}
