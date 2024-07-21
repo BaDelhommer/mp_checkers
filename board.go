@@ -8,6 +8,10 @@ type Board struct {
 	RedPiecesLeft   int32
 }
 
+func (b *Board) getPiece(row, col int32) *Piece {
+	return &b.Pieces[row][col]
+}
+
 func (b *Board) CreateBoard() {
 	for row := range ROWS {
 		b.Pieces = append(b.Pieces, []Piece{})
@@ -30,6 +34,17 @@ func (b *Board) CreateBoard() {
 				b.Pieces = append(b.Pieces, nil)
 			}
 		}
+	}
+}
+
+func (b *Board) move(piece Piece, row int32, col int32) {
+	b.Pieces[row] = nil
+	piece.Row = row
+	piece.Col = col
+	piece.move(row, col)
+
+	if row == ROWS-1 || row == 0 {
+		piece.makeKing()
 	}
 }
 
