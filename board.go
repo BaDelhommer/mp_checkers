@@ -141,6 +141,29 @@ func (b *Board) traverseRight(start, stop, step, right int32, color rl.Color, sk
 	return moves
 }
 
+func (b *Board) GetValidMoves(piece *Piece) [][]*Piece {
+	moves := [][]*Piece{}
+	left := piece.Col - 1
+	right := piece.Col + 1
+	row := piece.Row
+
+	if piece.Color == rl.Red || piece.King {
+		leftMoves := b.traverseLeft(row-1, max(row-3, -1), int32(-1), left, piece.Color, []*Piece{})
+		rightMoves := b.traverseRight(row+1, max(row-3, -1), int32(-1), right, piece.Color, []*Piece{})
+		moves = append(moves, leftMoves...)
+		moves = append(moves, rightMoves...)
+	}
+
+	if piece.Color == rl.White || piece.King {
+		leftMoves := b.traverseLeft(row+1, min(row+3, ROWS), 1, left, piece.Color, []*Piece{})
+		rightMoves := b.traverseRight(row+1, min(row+3, ROWS), 1, right, piece.Color, []*Piece{})
+		moves = append(moves, leftMoves...)
+		moves = append(moves, rightMoves...)
+	}
+
+	return moves
+}
+
 func drawSquares() {
 	for row := range ROWS {
 		for col := row % 2; col < ROWS; col += 2 {
