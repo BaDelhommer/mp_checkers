@@ -49,7 +49,7 @@ func (b *Board) move(piece *Piece, row int32, col int32) {
 	}
 }
 
-func (b *Board) Remove(pieces []Piece) {
+func (b *Board) Remove(pieces []*Piece) {
 	for _, piece := range pieces {
 		if !piece.Empty {
 			if piece.Color == rl.Red {
