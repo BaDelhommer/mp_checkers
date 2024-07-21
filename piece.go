@@ -13,6 +13,7 @@ type Piece struct {
 	King  bool
 	PosX  int32
 	PosY  int32
+	Empty bool
 }
 
 func (p *Piece) makeKing() {
@@ -31,9 +32,11 @@ func (p *Piece) move(row, col int32) {
 }
 
 func (p *Piece) draw() {
-	radius := SQUARE_SIZE/2 - PADDING
-	rl.DrawCircle(p.PosX, p.PosY, float32(radius+OUTLINE), rl.Gray)
-	rl.DrawCircle(p.PosX, p.PosY, float32(radius), p.Color)
+	if !p.Empty {
+		radius := SQUARE_SIZE/2 - PADDING
+		rl.DrawCircle(p.PosX, p.PosY, float32(radius+OUTLINE), rl.Gray)
+		rl.DrawCircle(p.PosX, p.PosY, float32(radius), p.Color)
+	}
 
 	if p.King {
 		fmt.Println("KING ME!!!")

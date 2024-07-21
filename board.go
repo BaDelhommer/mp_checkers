@@ -3,41 +3,42 @@ package main
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Board struct {
-	Pieces          [][]Piece
+	Pieces          [][]*Piece
 	WhitePiecesLeft int32
 	RedPiecesLeft   int32
 }
 
 func (b *Board) getPiece(row, col int32) *Piece {
-	return &b.Pieces[row][col]
+	return b.Pieces[row][col]
 }
 
 func (b *Board) CreateBoard() {
 	for row := range ROWS {
-		b.Pieces = append(b.Pieces, []Piece{})
+		b.Pieces = append(b.Pieces, []*Piece{})
 		for col := range COLS {
-			whitePiece := Piece{Color: rl.White, Row: row, Col: col, King: false}
-			redPiece := Piece{Color: rl.Red, Row: row, Col: col, King: false}
+			whitePiece := Piece{Color: rl.White, Row: row, Col: col, King: false, Empty: false}
+			redPiece := Piece{Color: rl.Red, Row: row, Col: col, King: false, Empty: false}
+			blankPiece := Piece{Color: rl.Blank, Row: row, Col: col, King: false, Empty: true}
 			if col%2 == ((row + 1) % 2) {
 				if row < 3 {
-					b.Pieces[row] = append(b.Pieces[row], whitePiece)
+					b.Pieces[row] = append(b.Pieces[row], &whitePiece)
 					whitePiece.calcPosition()
 					whitePiece.draw()
 				} else if row > 4 {
-					b.Pieces[row] = append(b.Pieces[row], redPiece)
+					b.Pieces[row] = append(b.Pieces[row], &redPiece)
 					redPiece.calcPosition()
 					redPiece.draw()
 				} else {
-					b.Pieces = append(b.Pieces, nil)
+					b.Pieces[row] = append(b.Pieces[row], &blankPiece)
 				}
 			} else {
-				b.Pieces = append(b.Pieces, nil)
+				b.Pieces[row] = append(b.Pieces[row], &blankPiece)
 			}
 		}
 	}
 }
 
-func (b *Board) move(piece Piece, row int32, col int32) {
+func (b *Board) move(piece *Piece, row int32, col int32) {
 	b.Pieces[row] = nil
 	piece.Row = row
 	piece.Col = col
@@ -45,6 +46,18 @@ func (b *Board) move(piece Piece, row int32, col int32) {
 
 	if row == ROWS-1 || row == 0 {
 		piece.makeKing()
+	}
+}
+
+func (b *Board) Remove(pieces []Piece) {
+	for _, piece := range pieces {
+		if !piece.Empty {
+			if piece.Color == rl.Red {
+				b.RedPiecesLeft -= 1
+			} else {
+				b.WhitePiecesLeft -= 1
+			}
+		}
 	}
 }
 
