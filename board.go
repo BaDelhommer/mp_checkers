@@ -61,6 +61,86 @@ func (b *Board) Remove(pieces []Piece) {
 	}
 }
 
+func (b *Board) traverseLeft(start, stop, step, left int32, color rl.Color, skipped []*Piece) [][]*Piece {
+	moves := [][]*Piece{}
+	last := []*Piece{}
+
+	for i := start; i <= stop; i += step {
+		if left < 0 {
+			break
+		}
+
+		current := b.Pieces[i][left]
+		if current.Empty {
+			if len(skipped) > 0 && len(last) == 0 {
+				break
+			} else if len(skipped) > 0 {
+				moves[i] = append(last, skipped...)
+			} else {
+				moves[i] = last
+			}
+
+			if len(last) > 0 {
+				if step == -1 {
+					current.Row = max(i-3, 0)
+				} else {
+					current.Row = min(i+3, ROWS)
+				}
+				skipped = append(skipped, last...)
+				moves = append(moves, b.traverseLeft(i+step, current.Row, step, left-1, color, skipped)...)
+				moves = append(moves, b.traverseRight(i+step, current.Row, step, left+1, color, skipped)...)
+			}
+			break
+		} else if current.Color == color {
+			break
+		} else {
+			last = append(last, current)
+		}
+		left -= 1
+	}
+	return moves
+}
+
+func (b *Board) traverseRight(start, stop, step, right int32, color rl.Color, skipped []*Piece) [][]*Piece {
+	moves := [][]*Piece{}
+	last := []*Piece{}
+
+	for i := start; i <= stop; i += step {
+		if right >= COLS {
+			break
+		}
+
+		current := b.Pieces[i][right]
+		if current.Empty {
+			if len(skipped) > 0 && len(last) == 0 {
+				break
+			} else if len(skipped) > 0 {
+				moves[i] = append(last, skipped...)
+			} else {
+				moves[i] = last
+			}
+
+			if len(last) > 0 {
+				if step == -1 {
+					current.Row = max(i-3, 0)
+				} else {
+					current.Row = min(i+3, ROWS)
+				}
+				skipped = append(skipped, last...)
+				moves = append(moves, b.traverseLeft(i+step, current.Row, step, right-1, color, skipped)...)
+				moves = append(moves, b.traverseLeft(i+step, current.Row, step, right+1, color, skipped)...)
+			}
+			break
+		} else if current.Color == color {
+			break
+		} else {
+			last = append(last, current)
+		}
+		right -= 1
+	}
+	return moves
+}
+
 func drawSquares() {
 	for row := range ROWS {
 		for col := row % 2; col < ROWS; col += 2 {
