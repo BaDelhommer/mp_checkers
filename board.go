@@ -27,24 +27,24 @@ func (b *Board) CreateBoard() {
 				if row < 3 {
 					b.Pieces[row][col] = &whitePiece
 					whitePiece.calcPosition()
-					whitePiece.draw()
 				} else if row > 4 {
 					b.Pieces[row][col] = &redPiece
 					redPiece.calcPosition()
-					redPiece.draw()
 				} else {
 					b.Pieces[row][col] = &blankPiece
+					blankPiece.calcPosition()
 				}
 			} else {
 				b.Pieces[row][col] = &blankPiece
+				blankPiece.calcPosition()
 			}
 		}
 	}
 }
 
 func (b *Board) move(piece *Piece, row int32, col int32) {
-	piece.Row = row
-	piece.Col = col
+	b.Pieces[row][col].PosX = piece.PosX
+	b.Pieces[row][col].PosY = piece.PosY
 	piece.move(row, col)
 
 	if row == ROWS-1 || row == 0 {
@@ -168,6 +168,17 @@ func (b *Board) GetValidMoves(piece *Piece) map[[2]int32][]*Piece {
 		moves = b.mergeMaps(moves, rightMoves)
 	}
 	return moves
+}
+
+func (b *Board) draw() {
+	for row := range ROWS {
+		for col := range COLS {
+			piece := b.Pieces[row][col]
+			if !piece.Empty {
+				piece.draw()
+			}
+		}
+	}
 }
 
 func (b *Board) mergeMaps(dest, src map[[2]int32][]*Piece) map[[2]int32][]*Piece {

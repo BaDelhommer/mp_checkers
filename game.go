@@ -39,10 +39,10 @@ func (g *Game) changeTurn() {
 
 func (g *Game) move(row, col int32) bool {
 	piece := g.Board.getPiece(row, col)
-	if g.Selected != nil && !piece.Empty && isMoveValid(g.ValidMoves, piece) {
+	if !g.Selected.Empty && !piece.Empty && isMoveValid(g.ValidMoves, piece) {
 		g.Board.move(g.Selected, row, col)
 		var skipped map[[2]int32][]*Piece
-		g.mergeMaps(skipped, g.ValidMoves)
+		skipped = g.mergeMaps(skipped, g.ValidMoves)
 		if len(skipped) > 0 {
 			g.Board.Remove(skipped)
 		}

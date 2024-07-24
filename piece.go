@@ -32,11 +32,9 @@ func (p *Piece) move(row, col int32) {
 }
 
 func (p *Piece) draw() {
-	if !p.Empty {
-		radius := SQUARE_SIZE/2 - PADDING
-		rl.DrawCircle(p.PosX, p.PosY, float32(radius+OUTLINE), rl.Gray)
-		rl.DrawCircle(p.PosX, p.PosY, float32(radius), p.Color)
-	}
+	radius := SQUARE_SIZE/2 - PADDING
+	rl.DrawCircle(p.PosX, p.PosY, float32(radius+OUTLINE), rl.Gray)
+	rl.DrawCircle(p.PosX, p.PosY, float32(radius), p.Color)
 
 	if p.King {
 		fmt.Println("KING ME!!!")
