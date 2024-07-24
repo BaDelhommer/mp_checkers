@@ -1,28 +1,42 @@
 package main
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func main() {
-	fmt.Println("Hello world")
-
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "checkers game")
 	defer rl.CloseWindow()
-	game_board := Board{
-		Pieces:          [][]*Piece{},
-		WhitePiecesLeft: NUM_PIECES,
-		RedPiecesLeft:   NUM_PIECES,
-	}
+	game := NewGame()
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 		drawSquares()
-		game_board.CreateBoard()
+		game.Board.CreateBoard()
+		if rl.IsMouseButtonPressed(0) {
+			x := rl.GetMouseX()
+			y := rl.GetMouseY()
+			row, col := getPieceRowCol(x, y)
+			if game.Turn == rl.Red {
+				game.Select(row, col)
+				game.showValidMoves(game.ValidMoves)
+				// fmt.Println(game.ValidMoves)
+			}
+			if game.Turn == rl.White {
+				game.Select(row, col)
+				game.showValidMoves(game.ValidMoves)
+			}
+
+		}
 
 		rl.EndDrawing()
 	}
+}
+
+func getPieceRowCol(x, y int32) (int32, int32) {
+	row := y / SQUARE_SIZE
+	col := x / SQUARE_SIZE
+
+	return row, col
 }

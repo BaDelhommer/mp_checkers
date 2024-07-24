@@ -11,3 +11,6 @@ const PADDING int32 = 15
 const OUTLINE int32 = 2
 
 const NUM_PIECES = 12
+
+const EMPTY int32 = 0
+const PLAYER int32 = 1

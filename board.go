@@ -1,9 +1,14 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"fmt"
+	"math"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Board struct {
-	Pieces          [][]*Piece
+	Pieces          [ROWS][COLS]*Piece
 	WhitePiecesLeft int32
 	RedPiecesLeft   int32
 }
@@ -14,32 +19,30 @@ func (b *Board) getPiece(row, col int32) *Piece {
 
 func (b *Board) CreateBoard() {
 	for row := range ROWS {
-		b.Pieces = append(b.Pieces, []*Piece{})
 		for col := range COLS {
 			whitePiece := Piece{Color: rl.White, Row: row, Col: col, King: false, Empty: false}
 			redPiece := Piece{Color: rl.Red, Row: row, Col: col, King: false, Empty: false}
 			blankPiece := Piece{Color: rl.Blank, Row: row, Col: col, King: false, Empty: true}
 			if col%2 == ((row + 1) % 2) {
 				if row < 3 {
-					b.Pieces[row] = append(b.Pieces[row], &whitePiece)
+					b.Pieces[row][col] = &whitePiece
 					whitePiece.calcPosition()
 					whitePiece.draw()
 				} else if row > 4 {
-					b.Pieces[row] = append(b.Pieces[row], &redPiece)
+					b.Pieces[row][col] = &redPiece
 					redPiece.calcPosition()
 					redPiece.draw()
 				} else {
-					b.Pieces[row] = append(b.Pieces[row], &blankPiece)
+					b.Pieces[row][col] = &blankPiece
 				}
 			} else {
-				b.Pieces[row] = append(b.Pieces[row], &blankPiece)
+				b.Pieces[row][col] = &blankPiece
 			}
 		}
 	}
 }
 
 func (b *Board) move(piece *Piece, row int32, col int32) {
-	b.Pieces[row] = nil
 	piece.Row = row
 	piece.Col = col
 	piece.move(row, col)
@@ -49,119 +52,129 @@ func (b *Board) move(piece *Piece, row int32, col int32) {
 	}
 }
 
-func (b *Board) Remove(pieces []*Piece) {
-	for _, piece := range pieces {
-		if !piece.Empty {
-			if piece.Color == rl.Red {
-				b.RedPiecesLeft -= 1
-			} else {
+func (b *Board) Remove(pieces map[[2]int32][]*Piece) {
+	for _, ps := range pieces {
+		for _, piece := range ps {
+			if piece.Color == rl.White {
 				b.WhitePiecesLeft -= 1
+			} else {
+				b.RedPiecesLeft -= 1
 			}
 		}
 	}
 }
 
-func (b *Board) traverseLeft(start, stop, step, left int32, color rl.Color, skipped []*Piece) [][]*Piece {
-	moves := [][]*Piece{}
-	last := []*Piece{}
+func (b *Board) traverseLeft(start, stop, step, left int32, color rl.Color, skipped []*Piece) map[[2]int32][]*Piece {
+	moves := make(map[[2]int32][]*Piece)
+	var last []*Piece
 
-	for i := start; i <= stop; i += step {
+	for r := start; r != stop; r += step {
 		if left < 0 {
 			break
 		}
-
-		current := b.Pieces[i][left]
+		current := b.Pieces[r][left]
 		if current.Empty {
 			if len(skipped) > 0 && len(last) == 0 {
 				break
 			} else if len(skipped) > 0 {
-				moves[i] = append(last, skipped...)
+				moves[[2]int32{r, left}] = append(last, skipped...)
 			} else {
-				moves[i] = last
+				moves[[2]int32{r, left}] = last
 			}
-
 			if len(last) > 0 {
+				var row int32
 				if step == -1 {
-					current.Row = max(i-3, 0)
+					row = int32(math.Max(float64(r+3), 0))
 				} else {
-					current.Row = min(i+3, ROWS)
+					row = int32(math.Min(float64(r+3), float64(ROWS)))
 				}
-				skipped = append(skipped, last...)
-				moves = append(moves, b.traverseLeft(i+step, current.Row, step, left-1, color, skipped)...)
-				moves = append(moves, b.traverseRight(i+step, current.Row, step, left+1, color, skipped)...)
+				leftMoves := b.mergeMaps(moves, b.traverseLeft(r+step, row, step, left-1, color, last))
+				rightMoves := b.mergeMaps(moves, b.traverseRight(r+step, row, step, left+1, color, last))
+				fmt.Println(leftMoves, rightMoves)
+				moves = b.mergeMaps(moves, leftMoves)
+				moves = b.mergeMaps(moves, rightMoves)
 			}
 			break
 		} else if current.Color == color {
 			break
 		} else {
-			last = append(last, current)
+			last = []*Piece{current}
 		}
 		left -= 1
 	}
 	return moves
 }
 
-func (b *Board) traverseRight(start, stop, step, right int32, color rl.Color, skipped []*Piece) [][]*Piece {
-	moves := [][]*Piece{}
-	last := []*Piece{}
+func (b *Board) traverseRight(start, stop, step, right int32, color rl.Color, skipped []*Piece) map[[2]int32][]*Piece {
+	moves := make(map[[2]int32][]*Piece)
+	var last []*Piece
 
-	for i := start; i <= stop; i += step {
+	for r := start; r != stop; r += step {
 		if right >= COLS {
 			break
 		}
 
-		current := b.Pieces[i][right]
+		current := b.Pieces[r][right]
 		if current.Empty {
 			if len(skipped) > 0 && len(last) == 0 {
 				break
 			} else if len(skipped) > 0 {
-				moves[i] = append(last, skipped...)
+				moves[[2]int32{r, right}] = append(last, skipped...)
 			} else {
-				moves[i] = last
+				moves[[2]int32{r, right}] = last
 			}
 
 			if len(last) > 0 {
+				var row int32
 				if step == -1 {
-					current.Row = max(i-3, 0)
+					row = int32(math.Max(float64(r-3), 0))
 				} else {
-					current.Row = min(i+3, ROWS)
+					row = int32(math.Max(float64(r+3), float64(ROWS)))
 				}
-				skipped = append(skipped, last...)
-				moves = append(moves, b.traverseLeft(i+step, current.Row, step, right-1, color, skipped)...)
-				moves = append(moves, b.traverseLeft(i+step, current.Row, step, right+1, color, skipped)...)
+				leftMoves := b.mergeMaps(moves, b.traverseLeft(r+step, row, step, right-1, color, last))
+				rightMoves := b.mergeMaps(moves, b.traverseRight(r+step, row, step, right+1, color, last))
+				moves = b.mergeMaps(moves, leftMoves)
+				moves = b.mergeMaps(moves, rightMoves)
 			}
 			break
 		} else if current.Color == color {
 			break
 		} else {
-			last = append(last, current)
+			last = []*Piece{current}
 		}
-		right -= 1
+		right += 1
 	}
 	return moves
 }
 
-func (b *Board) GetValidMoves(piece *Piece) [][]*Piece {
-	moves := [][]*Piece{}
+func (b *Board) GetValidMoves(piece *Piece) map[[2]int32][]*Piece {
+	moves := make(map[[2]int32][]*Piece)
 	left := piece.Col - 1
 	right := piece.Col + 1
 	row := piece.Row
 
 	if piece.Color == rl.Red || piece.King {
-		leftMoves := b.traverseLeft(row-1, max(row-3, -1), int32(-1), left, piece.Color, []*Piece{})
-		rightMoves := b.traverseRight(row+1, max(row-3, -1), int32(-1), right, piece.Color, []*Piece{})
-		moves = append(moves, leftMoves...)
-		moves = append(moves, rightMoves...)
+		leftMoves := b.traverseLeft(row-1, int32(math.Max(float64(row-3), float64(-1))), int32(-1), left, piece.Color, []*Piece{})
+		rightMoves := b.traverseRight(row-1, int32(math.Max(float64(row-3), float64(-1))), int32(-1), right, piece.Color, []*Piece{})
+		moves = b.mergeMaps(moves, leftMoves)
+		moves = b.mergeMaps(moves, rightMoves)
+		fmt.Println(moves)
 	}
 
 	if piece.Color == rl.White || piece.King {
-		leftMoves := b.traverseLeft(row+1, min(row+3, ROWS), 1, left, piece.Color, []*Piece{})
-		rightMoves := b.traverseRight(row+1, min(row+3, ROWS), 1, right, piece.Color, []*Piece{})
-		moves = append(moves, leftMoves...)
-		moves = append(moves, rightMoves...)
+		leftMoves := b.traverseLeft(row+1, int32(min(float64(row+3), float64(ROWS))), 1, left, piece.Color, []*Piece{})
+		rightMoves := b.traverseRight(row+1, int32(min(float64(row+3), float64(ROWS))), 1, right, piece.Color, []*Piece{})
+		moves = b.mergeMaps(moves, leftMoves)
+		moves = b.mergeMaps(moves, rightMoves)
 	}
-
 	return moves
+}
+
+func (b *Board) mergeMaps(dest, src map[[2]int32][]*Piece) map[[2]int32][]*Piece {
+	for k, v := range src {
+		dest[k] = v
+	}
+	return dest
 }
 
 func drawSquares() {

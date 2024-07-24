@@ -1,12 +1,14 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Game struct {
 	Board
 	Selected   *Piece
 	Turn       rl.Color
-	ValidMoves [][]*Piece
+	ValidMoves map[[2]int32][]*Piece
 }
 
 func (g *Game) Select(row, col int32) bool {
@@ -39,8 +41,8 @@ func (g *Game) move(row, col int32) bool {
 	piece := g.Board.getPiece(row, col)
 	if g.Selected != nil && !piece.Empty && isMoveValid(g.ValidMoves, piece) {
 		g.Board.move(g.Selected, row, col)
-		skipped := []*Piece{}
-		skipped = append(skipped, g.ValidMoves[row][col])
+		var skipped map[[2]int32][]*Piece
+		g.mergeMaps(skipped, g.ValidMoves)
 		if len(skipped) > 0 {
 			g.Board.Remove(skipped)
 		}
@@ -52,9 +54,9 @@ func (g *Game) move(row, col int32) bool {
 	return true
 }
 
-func (g *Game) showValidMoves(moves [][]*Piece) {
-	for i, move := range moves {
-		rl.DrawCircle(move[i].PosX, move[i].PosY, float32(SQUARE_SIZE/4), rl.Blue)
+func (g *Game) showValidMoves(moves map[[2]int32][]*Piece) {
+	for c := range moves {
+		rl.DrawCircle(c[1]*SQUARE_SIZE+(SQUARE_SIZE/2), c[0]*SQUARE_SIZE+(SQUARE_SIZE/2), float32(SQUARE_SIZE/4), rl.Blue)
 	}
 }
 
@@ -63,14 +65,16 @@ func NewGame() *Game {
 		Board:      Board{},
 		Selected:   nil,
 		Turn:       rl.Red,
-		ValidMoves: [][]*Piece{},
+		ValidMoves: map[[2]int32][]*Piece{},
 	}
 }
 
-func isMoveValid(pieces [][]*Piece, piece *Piece) bool {
-	for i, p := range pieces {
-		if p[i] == piece {
-			return true
+func isMoveValid(pieces map[[2]int32][]*Piece, piece *Piece) bool {
+	for _, p := range pieces {
+		for _, i := range p {
+			if i == piece {
+				return true
+			}
 		}
 	}
 	return false
