@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -90,7 +89,6 @@ func (b *Board) traverseLeft(start, stop, step, left int32, color rl.Color, skip
 				}
 				leftMoves := b.mergeMaps(moves, b.traverseLeft(r+step, row, step, left-1, color, last))
 				rightMoves := b.mergeMaps(moves, b.traverseRight(r+step, row, step, left+1, color, last))
-				fmt.Println(leftMoves, rightMoves)
 				moves = b.mergeMaps(moves, leftMoves)
 				moves = b.mergeMaps(moves, rightMoves)
 			}
@@ -158,7 +156,6 @@ func (b *Board) GetValidMoves(piece *Piece) map[[2]int32][]*Piece {
 		rightMoves := b.traverseRight(row-1, int32(math.Max(float64(row-3), float64(-1))), int32(-1), right, piece.Color, []*Piece{})
 		moves = b.mergeMaps(moves, leftMoves)
 		moves = b.mergeMaps(moves, rightMoves)
-		fmt.Println(moves)
 	}
 
 	if piece.Color == rl.White || piece.King {

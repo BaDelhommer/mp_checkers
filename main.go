@@ -15,7 +15,7 @@ func main() {
 		drawSquares()
 		game.Board.CreateBoard()
 		game.Board.draw()
-		if rl.IsMouseButtonDown(0) {
+		if rl.IsMouseButtonPressed(0) {
 			x := rl.GetMouseX()
 			y := rl.GetMouseY()
 			row, col := getPieceRowCol(x, y)

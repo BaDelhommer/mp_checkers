@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Game struct {
-	Board
+	*Board
 	Selected   *Piece
 	Turn       rl.Color
 	ValidMoves map[[2]int32][]*Piece
@@ -15,7 +17,7 @@ func (g *Game) Select(row, col int32) bool {
 	if g.Selected != nil {
 		result := g.move(row, col)
 		if !result {
-			g.Selected = nil
+			g.Selected.Empty = true
 			g.Select(row, col)
 		}
 	}
@@ -40,10 +42,12 @@ func (g *Game) changeTurn() {
 func (g *Game) move(row, col int32) bool {
 	piece := g.Board.getPiece(row, col)
 	if !g.Selected.Empty && !piece.Empty && isMoveValid(g.ValidMoves, piece) {
+		fmt.Println("First condition")
 		g.Board.move(g.Selected, row, col)
 		var skipped map[[2]int32][]*Piece
 		skipped = g.mergeMaps(skipped, g.ValidMoves)
 		if len(skipped) > 0 {
+			fmt.Println("Second condition")
 			g.Board.Remove(skipped)
 		}
 		g.changeTurn()
@@ -62,8 +66,8 @@ func (g *Game) showValidMoves(moves map[[2]int32][]*Piece) {
 
 func NewGame() *Game {
 	return &Game{
-		Board:      Board{},
-		Selected:   nil,
+		Board:      &Board{},
+		Selected:   &Piece{},
 		Turn:       rl.Red,
 		ValidMoves: map[[2]int32][]*Piece{},
 	}
